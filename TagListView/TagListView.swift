@@ -11,6 +11,7 @@ import UIKit
 @objc public protocol TagListViewDelegate {
     @objc optional func tagPressed(_ title: String, tagView: TagView, sender: TagListView) -> Void
     @objc optional func tagRemoveButtonPressed(_ title: String, tagView: TagView, sender: TagListView) -> Void
+    @objc optional func longPressed(_ title: String, tagView: TagView) -> Void
 }
 
 @IBDesignable
@@ -314,6 +315,7 @@ open class TagListView: UIView {
         tagView.enableRemoveButton = enableRemoveButton
         tagView.removeIconLineColor = removeIconLineColor
         tagView.addTarget(self, action: #selector(tagPressed(_:)), for: .touchUpInside)
+        tagView.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(longPressed(_:))))
         tagView.removeButton.addTarget(self, action: #selector(removeButtonPressed(_:)), for: .touchUpInside)
         
         // On long press, deselect all tags except this one
@@ -416,6 +418,13 @@ open class TagListView: UIView {
     @objc func tagPressed(_ sender: TagView!) {
         sender.onTap?(sender)
         delegate?.tagPressed?(sender.currentTitle ?? "", tagView: sender, sender: self)
+    }
+    
+    @objc func longPressed(_ sender: UIGestureRecognizer) {
+        guard let tagView = sender.view as? TagView else { return }
+        if sender.state == .began {
+            delegate?.longPressed?(tagView.currentTitle ?? "", tagView: tagView)
+        }
     }
     
     @objc func removeButtonPressed(_ closeButton: CloseButton!) {
